@@ -1,0 +1,83 @@
+package com.saki.maps;
+
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+import javax.xml.parsers.SAXParserFactory;
+
+import com.sap.aii.mapping.api.AbstractTransformation;
+import com.sap.aii.mapping.api.StreamTransformationException;
+import com.sap.aii.mapping.api.TransformationInput;
+import com.sap.aii.mapping.api.TransformationOutput;
+import java.sql.ResultSet;
+
+public class MapDemo extends AbstractTransformation{
+
+	 private static String sapsys = System.getProperty("SAPSYSTEMNAME");	
+	@Override
+	public void transform(TransformationInput input, TransformationOutput output)
+			throws StreamTransformationException {
+
+		write_trace("Entering the map",sapsys);				
+		
+		  try {
+			  
+			write_trace("Location 1",sapsys);			  
+			InitialContext ctx = new InitialContext();
+			DataSource ds = (DataSource) ctx.lookup("jdbc/MYDICT");
+
+			write_trace("Location 2",sapsys);			
+			Connection con = ds.getConnection();
+			write_trace("Location 3",sapsys);
+			
+			PreparedStatement  stmt = null;
+			String query = "select ID, FIRSTNAME, LASTNAME from  TMP_CUSTOMER where TMP_CUSTOMER.ID = ?";
+			
+			write_trace("Location 4",sapsys);			
+			PreparedStatement ps = con.prepareStatement(query);
+			write_trace("Location 5",sapsys);
+		      
+			ps.setInt(1, 1);
+		      write_trace("Location 6",sapsys);		      
+
+		      ResultSet rs = ps.executeQuery();
+		      write_trace("Location 7",sapsys);		      
+		      while ( rs.next() ) {
+		    	  write_trace("Location 8",sapsys);		    	  
+		          String outputString = rs.getString("FIRSTNAME") + " " +
+		                         rs.getString("LASTNAME");
+		          
+		          write_trace(outputString,sapsys);		          
+
+		             }
+		
+		} catch (NamingException e) {
+			// TODO Auto-generated catch block
+			write_trace(e.getMessage(),sapsys);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			write_trace(e.getMessage(),sapsys);
+		}		  
+
+		  
+		
+	}
+
+    private void write_trace(String str, String SID) {
+    	if (SID == null) {
+    	    System.out.println(str);
+    	} else {
+    	    getTrace().addInfo(str);
+    	}	
+	
+}
+    
+}
